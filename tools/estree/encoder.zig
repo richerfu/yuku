@@ -67,7 +67,7 @@ fn writeInverseMaps(w: *Writer) !void {
     try writeInverseObject(w, "TS_TYPE_OPERATORS_INV", &.{ "keyof", "unique", "readonly" });
     try writeInverseObject(w, "TS_METHOD_SIGNATURE_KINDS_INV", &.{ "method", "get", "set" });
     try writeInverseObject(w, "TS_MODULE_KINDS_INV", &.{ "namespace", "module" });
-    try writeInverseObject(w, "IMPORT_PHASE_INV", &.{ "source", "defer" });
+    try writeInverseObject(w, "IMPORT_PHASE_INV", &.{ "source", "defer", "lazy" });
 
     try w.writeAll(
         \\const ACCESSIBILITY_INV = (v) =>
@@ -655,6 +655,7 @@ fn writeSpecialFunction(w: *Writer, comptime tag: usize) !void {
     const sb = comptime slotOf(ast.Function, "body");
     const stp = comptime slotOf(ast.Function, "type_parameters");
     const srt = comptime slotOf(ast.Function, "return_type");
+    const sdec = comptime slotOf(ast.Function, "decorators");
     const bt = comptime flagBit(ast.Function, "type");
     const tm = comptime enumMask(ast.FunctionType);
     const mg = comptime flagMask(ast.Function, "generator");
@@ -667,6 +668,7 @@ fn writeSpecialFunction(w: *Writer, comptime tag: usize) !void {
         \\    const body = n.body == null ? NULL : encNode(n.body);
         \\    const tp = n.typeParameters == null ? NULL : encNode(n.typeParameters);
         \\    const rt_ = n.returnType == null ? NULL : encNode(n.returnType);
+        \\    const decs = encArr(n.decorators || [], encNode);
         \\    const idx = alloc();
         \\    tagAt(idx, {d});
         \\    slotAt(idx, {d}, id);
@@ -674,6 +676,8 @@ fn writeSpecialFunction(w: *Writer, comptime tag: usize) !void {
         \\    slotAt(idx, {d}, body);
         \\    slotAt(idx, {d}, tp);
         \\    slotAt(idx, {d}, rt_);
+        \\    f0At(idx, decs.len);
+        \\    slotAt(idx, {d}, decs.start);
         \\    flagsAt(idx,
         \\      ((kind & {d}) << {d})
         \\      | (n.generator ? {d} : 0)
@@ -684,7 +688,7 @@ fn writeSpecialFunction(w: *Writer, comptime tag: usize) !void {
         \\    return idx;
         \\  }}
         \\
-    , .{ tag, si, sp, sb, stp, srt, tm, bt, mg, ma, md });
+    , .{ tag, si, sp, sb, stp, srt, sdec, tm, bt, mg, ma, md });
 }
 
 fn writeSpecialArrowFn(w: *Writer, comptime tag: usize) !void {

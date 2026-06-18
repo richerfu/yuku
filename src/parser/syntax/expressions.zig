@@ -18,6 +18,7 @@ const object = @import("object.zig");
 const literals = @import("literals.zig");
 const functions = @import("functions.zig");
 const class = @import("class.zig");
+const arkui = @import("arkui.zig");
 const extensions = @import("extensions.zig");
 const parenthesized = @import("parenthesized.zig");
 const patterns = @import("patterns.zig");
@@ -223,6 +224,12 @@ pub inline fn parsePrimaryExpression(
 ) Error!?ast.NodeIndex {
     if (parser.current_token.tag.isNumericLiteral()) {
         return literals.parseNumericLiteral(parser);
+    }
+
+    // ArkUI leading-dot expression: `.method(args).chain()` at primary
+    // position (state-style modifier with implicit `this`).
+    if (parser.tree.isArkui() and parser.current_token.tag == .dot) {
+        return arkui.parseLeadingDotExpression(parser);
     }
 
     return switch (parser.current_token.tag) {
@@ -1042,7 +1049,7 @@ inline fn isPartOfPattern(parser: *Parser) bool {
 }
 
 /// obj.prop or obj.#priv
-fn parseStaticMemberExpression(
+pub fn parseStaticMemberExpression(
     parser: *Parser,
     object_node: ast.NodeIndex,
     optional: bool,
@@ -1156,6 +1163,22 @@ pub fn parseCallExpression(
         return null;
     }
     try parser.advance() orelse return null; // consume ')'
+
+    // ArkUI declarative component: `Column(args) { children }`. The body `{`
+    // must be on the same line as `)` so a newline-separated `foo()\n{ … }`
+    // (valid JS: call then block) is not misread as a component. Trailing
+    // `.method(...)` chains wrap this node as ordinary member/call expressions.
+    if (parser.tree.isArkui() and parser.current_token.tag == .left_brace and
+        !parser.current_token.hasLineTerminatorBefore())
+    {
+        return arkui.parseArkuiComponentAfterArgs(
+            parser,
+            start,
+            callee_node,
+            type_arguments,
+            args,
+        );
+    }
 
     return try parser.tree.addNode(.{
         .call_expression = .{

@@ -74,13 +74,17 @@ pub const Lang = enum {
     jsx,
     tsx,
     dts,
+    /// HarmonyOS ArkTS / ArkUI (`.ets`). A TypeScript superset with the
+    /// declarative UI syntax: `@Component struct`, `Column() { ... }`,
+    /// `@interface` annotations, leading-dot state styles, `import lazy`.
+    arkui,
 
     /// Determines the language variant based on the file extension.
     ///
-    /// `.d.ts`, `.d.mts`, `.d.cts` resolve to `dts`. `.tsx` resolves to
-    /// `tsx`. `.ts`, `.mts`, `.cts` resolve to `ts`. `.jsx` resolves to
-    /// `jsx`. Anything else (including `.js`, `.mjs`, `.cjs`) resolves to
-    /// `js`.
+    /// `.d.ts`, `.d.mts`, `.d.cts` resolve to `dts`. `.ets` resolves to
+    /// `arkui`. `.tsx` resolves to `tsx`. `.ts`, `.mts`, `.cts` resolve to
+    /// `ts`. `.jsx` resolves to `jsx`. Anything else (including `.js`,
+    /// `.mjs`, `.cjs`) resolves to `js`.
     pub fn fromPath(path: []const u8) Lang {
         if (std.mem.endsWith(u8, path, ".d.ts") or
             std.mem.endsWith(u8, path, ".d.mts") or
@@ -88,6 +92,8 @@ pub const Lang = enum {
         {
             return .dts;
         }
+
+        if (std.mem.endsWith(u8, path, ".ets")) return .arkui;
 
         if (std.mem.endsWith(u8, path, ".tsx")) return .tsx;
 
@@ -188,7 +194,7 @@ pub const Tree = struct {
     strings: StringPool = .{},
     /// Source type (script or module).
     source_type: SourceType = .module,
-    /// Language variant (js, ts, jsx, tsx, dts).
+    /// Language variant (js, ts, jsx, tsx, dts, arkui).
     lang: Lang = .js,
 
     /// Creates a tree for parsing or transforming source code.
@@ -218,11 +224,18 @@ pub const Tree = struct {
     }
 
     pub inline fn isTs(self: *const Tree) bool {
-        return self.lang == .ts or self.lang == .tsx or self.lang == .dts;
+        return self.lang == .ts or self.lang == .tsx or self.lang == .dts or self.lang == .arkui;
     }
 
     pub inline fn isJsx(self: *const Tree) bool {
         return self.lang == .tsx or self.lang == .jsx;
+    }
+
+    /// ArkTS / ArkUI (`.ets`). Implies TypeScript (see `isTs`) but not JSX:
+    /// ArkUI uses function-call component syntax (`Column() { ... }`), not
+    /// angle-bracket JSX.
+    pub inline fn isArkui(self: *const Tree) bool {
+        return self.lang == .arkui;
     }
 
     pub inline fn isModule(self: *const Tree) bool {
@@ -682,6 +695,95 @@ pub const PropertyDefinition = struct {
 pub const StaticBlock = struct {
     /// any statement
     body: IndexRange,
+};
+
+/// An ArkUI `struct` declaration (HarmonyOS ArkTS).
+///
+/// ArkUI structs are class-like containers for declarative UI components.
+/// They carry decorators (`@Component`, `@Entry`, …), state fields
+/// (`@State`, `@Local`, …), and a `build()` method whose body is the
+/// declarative UI tree. Unlike a class, a struct has no `extends` /
+/// `implements`; its body reuses `class_body` (methods + property defs).
+///
+/// ## Example
+/// ```arkui
+/// @Component
+/// struct MyComponent {
+///   @Local message: string = 'Hello';
+///   build() { Column() { Text(this.message) } }
+/// }
+/// ```
+pub const ArkuiStruct = struct {
+    /// `decorator[]` (`@Component`, `@Entry`, …).
+    decorators: IndexRange,
+    /// `binding_identifier`. The component name.
+    id: NodeIndex,
+    /// `ts_type_parameter_declaration`. `.null` for a non-generic struct.
+    type_parameters: NodeIndex = .null,
+    /// `class_body` — reused; holds `method_definition` / `property_definition`.
+    body: NodeIndex,
+    /// true for `declare struct` (ambient, body-less or signature-only).
+    declare: bool = false,
+};
+
+/// An ArkTS `@interface` annotation declaration.
+///
+/// Defines a custom annotation type whose body is a list of typed properties
+/// (with optional defaults). Structurally a class body reused for its
+/// property definitions. Mirrors oxc's `AnnotationDeclaration`.
+///
+/// ## Example
+/// ```arkts
+/// @interface MyAnnotation {
+///   value: string;
+///   count?: number = 10;
+/// }
+/// ```
+pub const ArkuiAnnotation = struct {
+    /// `decorator[]`. Usually empty for `@interface`.
+    decorators: IndexRange,
+    /// `binding_identifier`. The annotation name.
+    id: NodeIndex,
+    /// `class_body` — reused; holds `property_definition` entries.
+    body: NodeIndex,
+    /// true for `declare @interface`.
+    declare: bool = false,
+};
+
+/// An ArkUI declarative component expression: `Column(args) { children }`.
+///
+/// Mirrors oxc's `ArkUIComponentExpression` but, unlike oxc, does NOT carry a
+/// separate `chain_expressions` field. Trailing method chains
+/// (`Button('x').onClick(...)` / `Column() { ... }.width(10)`) are represented
+/// as ordinary `member_expression` / `call_expression` nodes wrapping this
+/// component — the standard ESTree shape — and round-trip identically.
+/// `children` is a heterogeneous list of statements (components appear as
+/// expression statements, control flow as `if`/`for`/… statements).
+pub const ArkuiComponent = struct {
+    /// any expression — the component name (usually an `identifier_reference`
+    /// such as `Column`, `Text`, `Button`).
+    callee: NodeIndex,
+    /// `ts_type_parameter_instantiation`. `.null` for a non-generic component.
+    type_arguments: NodeIndex = .null,
+    /// `spread_element` or any expression. Mirrors `call_expression.arguments`.
+    arguments: IndexRange,
+    /// child statements: nested components (as expression statements),
+    /// expressions, or control-flow statements.
+    children: IndexRange,
+};
+
+/// An ArkUI leading-dot expression: `.method(args).chain()`.
+///
+/// State-style modifier syntax where the receiver (`this`) is implicit, used
+/// as standalone statements / component children (`.backgroundColor('#fff')`)
+/// and inside state-style object literals. Mirrors oxc's
+/// `LeadingDotExpression`; here it is a thin wrapper — `expression` holds the
+/// full call/member chain (starting from the first method identifier), and
+/// the wrapper only remembers the leading `.` for emission.
+pub const ArkuiLeadingDot = struct {
+    /// the call/member chain following the leading dot, e.g.
+    /// `backgroundColor('#fff').fancy(12)`. Emitted prefixed with `.`.
+    expression: NodeIndex,
 };
 
 /// Binary operators.
@@ -1948,6 +2050,9 @@ pub const Function = struct {
     type_parameters: NodeIndex = .null,
     /// `ts_type_annotation`. `.null` when absent.
     return_type: NodeIndex = .null,
+    /// `decorator[]`. Only ArkUI decorates function declarations
+    /// (`@Builder function …`); empty otherwise.
+    decorators: IndexRange = .empty,
 };
 
 /// The body of a function.
@@ -2245,10 +2350,13 @@ pub const ImportOrExportKind = enum {
 /// ```js
 /// import source x from "m";  // phase = .source
 /// import defer * as x from "m";  // phase = .defer
+/// import lazy { c } from "m";    // phase = .lazy (HarmonyOS ArkUI)
 /// ```
 pub const ImportPhase = enum {
     source,
     @"defer",
+    /// HarmonyOS ArkUI lazy import: `import lazy { … } from "m"`.
+    lazy,
 };
 
 /// A dynamic `import()` call or phased import.
@@ -4242,6 +4350,12 @@ pub const NodeData = union(enum) {
     jsx_text: JSXText,
     jsx_spread_child: JSXSpreadChild,
 
+    // arkui (HarmonyOS ArkTS / ArkUI, `.ets`)
+    arkui_struct: ArkuiStruct,
+    arkui_annotation: ArkuiAnnotation,
+    arkui_component: ArkuiComponent,
+    arkui_leading_dot: ArkuiLeadingDot,
+
     /// True when this node produces a value at runtime.
     ///
     /// Covers literals, identifiers used as values, operator expressions,
@@ -4287,6 +4401,8 @@ pub const NodeData = union(enum) {
             .ts_instantiation_expression,
             .jsx_element,
             .jsx_fragment,
+            .arkui_component,
+            .arkui_leading_dot,
             => true,
             .function => |f| f.type == .function_expression or
                 f.type == .ts_empty_body_function_expression,
@@ -4333,6 +4449,8 @@ pub const NodeData = union(enum) {
             .ts_import_equals_declaration,
             .ts_export_assignment,
             .ts_namespace_export_declaration,
+            .arkui_struct,
+            .arkui_annotation,
             => true,
             .function => |f| f.type == .function_declaration or f.type == .ts_declare_function,
             .class => |c| c.type == .class_declaration,
@@ -4402,6 +4520,8 @@ pub const NodeData = union(enum) {
             => true,
             .function => |f| f.type == .function_declaration or f.type == .ts_declare_function,
             .class => |c| c.type == .class_declaration,
+            .arkui_struct => true,
+            .arkui_annotation => true,
             else => false,
         };
     }

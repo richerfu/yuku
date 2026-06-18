@@ -156,6 +156,8 @@ pub const TokenTag = enum(u32) {
     assert = 108 | Mask.IsKeyword | Mask.IsIdentifierLike, // "assert" (import assertions)
     source = 109 | Mask.IsKeyword | Mask.IsIdentifierLike, // "source" (source phase imports)
     @"defer" = 110 | Mask.IsKeyword | Mask.IsIdentifierLike, // "defer" (deferred imports)
+    lazy = 160 | Mask.IsKeyword | Mask.IsIdentifierLike, // "lazy" (ArkUI lazy imports)
+    @"struct" = 161 | Mask.IsKeyword | Mask.IsIdentifierLike, // "struct" (ArkUI)
 
     @"try" = 111 | Mask.IsKeyword | Mask.IsUnconditionallyReserved | Mask.IsIdentifierLike, // "try"
     @"catch" = 112 | Mask.IsKeyword | Mask.IsUnconditionallyReserved | Mask.IsIdentifierLike,
@@ -396,6 +398,8 @@ pub const TokenTag = enum(u32) {
             .assert => "assert",
             .source => "source",
             .@"defer" => "defer",
+            .lazy => "lazy",
+            .@"struct" => "struct",
 
             .@"try" => "try",
             .@"catch" => "catch",

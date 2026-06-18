@@ -10,6 +10,7 @@ const literals = @import("literals.zig");
 const patterns = @import("patterns.zig");
 const functions = @import("functions.zig");
 const class = @import("class.zig");
+const arkui = @import("arkui.zig");
 const extensions = @import("extensions.zig");
 const grammar = @import("../grammar.zig");
 const for_loop = @import("for_loop.zig");
@@ -49,6 +50,7 @@ pub fn parseStatement(parser: *Parser, opts: ParseStatementOpts) Error!?ast.Node
         .global,
         .declare,
         .abstract,
+        .@"struct",
         => parseTsDeclarationOrExpression(parser),
         .@"export" => modules.parseExportDeclaration(parser),
         .@"if" => parseIfStatement(parser),
@@ -69,14 +71,40 @@ pub fn parseStatement(parser: *Parser, opts: ParseStatementOpts) Error!?ast.Node
     };
 }
 
-/// `@dec class C` or `@dec export [default] class C`.
+/// `@dec class C`, `@dec export [default] class C`, or (ArkUI) `@dec struct S`.
 fn parseDecoratedStatement(parser: *Parser) Error!?ast.NodeIndex {
     std.debug.assert(parser.current_token.tag == .at);
     const start = parser.current_token.span.start;
+
+    // ArkUI: `@interface Name { ... }` is a distinct annotation declaration,
+    // not a decorator. Intercept before generic decorator parsing consumes
+    // `interface` as an identifier.
+    if (parser.tree.isArkui()) {
+        if (parser.peekAhead()) |next| {
+            if (next.tag == .interface) {
+                try parser.advance() orelse return null; // consume `@`
+                return arkui.parseAnnotationDeclaration(parser, .{}, start, ast.IndexRange.empty);
+            }
+        }
+    }
+
     const decorators = try extensions.parseDecorators(parser) orelse return null;
 
     if (parser.current_token.tag == .@"export") {
         return modules.parseExportDecorated(parser, decorators);
+    }
+
+    // ArkUI: `@Component struct S { ... }`
+    if (parser.tree.isArkui() and parser.current_token.tag == .@"struct") {
+        return arkui.parseStruct(parser, .{}, start, decorators);
+    }
+
+    // ArkUI: `@Builder function foo() { ... }` (statement-level decorated fn).
+    if (parser.tree.isArkui() and (parser.current_token.tag == .function or
+        (parser.current_token.tag == .async and parser.peekAhead() != null and
+            parser.peekAhead().?.tag == .function)))
+    {
+        return functions.parseFunction(parser, .{ .decorators = decorators }, start);
     }
 
     return class.parseClassDecorated(parser, .{}, start, decorators);

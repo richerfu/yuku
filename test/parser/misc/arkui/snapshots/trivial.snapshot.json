@@ -1,0 +1,109 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 136,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "VariableDeclaration",
+        "start": 74,
+        "end": 113,
+        "kind": "const",
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 80,
+            "end": 112,
+            "id": {
+              "type": "Identifier",
+              "start": 80,
+              "end": 95,
+              "name": "message",
+              "decorators": [],
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 87,
+                "end": 95,
+                "typeAnnotation": {
+                  "type": "TSStringKeyword",
+                  "start": 89,
+                  "end": 95
+                }
+              },
+              "optional": false
+            },
+            "init": {
+              "type": "Literal",
+              "start": 98,
+              "end": 112,
+              "value": "Hello, ArkUI",
+              "raw": "\"Hello, ArkUI\""
+            },
+            "definite": false
+          }
+        ],
+        "declare": false
+      },
+      {
+        "type": "ExpressionStatement",
+        "start": 114,
+        "end": 135,
+        "expression": {
+          "type": "CallExpression",
+          "start": 114,
+          "end": 134,
+          "callee": {
+            "type": "MemberExpression",
+            "start": 114,
+            "end": 125,
+            "object": {
+              "type": "Identifier",
+              "start": 114,
+              "end": 121,
+              "name": "console",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            },
+            "property": {
+              "type": "Identifier",
+              "start": 122,
+              "end": 125,
+              "name": "log",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            },
+            "computed": false,
+            "optional": false
+          },
+          "arguments": [
+            {
+              "type": "Identifier",
+              "start": 126,
+              "end": 133,
+              "name": "message",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            }
+          ],
+          "optional": false,
+          "typeArguments": null
+        },
+        "directive": null
+      }
+    ]
+  },
+  "comments": [
+    {
+      "type": "Line",
+      "value": " Phase 0: a `.ets` file parses as a TypeScript module (ArkTS superset).",
+      "start": 0,
+      "end": 73
+    }
+  ],
+  "diagnostics": []
+}

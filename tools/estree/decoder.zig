@@ -94,7 +94,7 @@ fn writeSemanticConstants(w: *Writer) !void {
         "class",  "staticBlock", "expressionName", "tsModule",
     });
     try writeArray(w, "NAME_KINDS", &.{ "named", "star", "none", "equals", "global" });
-    try writeArray(w, "IMPORT_PHASES", &.{ "source", "defer" });
+    try writeArray(w, "IMPORT_PHASES", &.{ "source", "defer", "lazy" });
 
     try w.writeAll("const SymbolFlags = Object.freeze({\n");
     inline for (@typeInfo(Symbol.Flags).@"struct".fields) |field| {
@@ -415,7 +415,7 @@ const special_child_keys = [_]SpecialChildKeys{
     .{ .variant = "function", .types = &.{
         "FunctionDeclaration", "FunctionExpression",
         "TSDeclareFunction",   "TSEmptyBodyFunctionExpression",
-    }, .keys = &.{ "id", "params", "body", "typeParameters", "returnType" } },
+    }, .keys = &.{ "decorators", "id", "params", "body", "typeParameters", "returnType" } },
     .{ .variant = "arrow_function_expression", .types = &.{"ArrowFunctionExpression"}, .keys = &.{
         "params", "body", "typeParameters", "returnType",
     } },
@@ -646,8 +646,9 @@ fn writeFieldExpr(
         }
     } else if (F == ?ast.ImportPhase) {
         const bit = comptime rt.flagBitForField(T, i);
+        // presence flag at `bit`; 2-bit phase value at `bit+1` (source/defer/lazy).
         try w.print(
-            "(flags & {d}) ? [\"source\", \"defer\"][(flags >> {d}) & 1] : null",
+            "(flags & {d}) ? [\"source\", \"defer\", \"lazy\"][(flags >> {d}) & 3] : null",
             .{ @as(u32, 1) << @intCast(bit), bit + 1 },
         );
     } else if (F == ?ast.Hashbang) {
@@ -678,6 +679,7 @@ fn writeSpecialCase(w: *Writer, comptime name: []const u8, comptime tag: usize) 
         const sb = comptime slotOf(ast.Function, "body");
         const stp = comptime slotOf(ast.Function, "type_parameters");
         const srt = comptime slotOf(ast.Function, "return_type");
+        const sdec = comptime slotOf(ast.Function, "decorators");
         const bg = comptime flagMask(ast.Function, "generator");
         const ba = comptime flagMask(ast.Function, "async");
         const bd = comptime flagMask(ast.Function, "declare");
@@ -692,6 +694,7 @@ fn writeSpecialCase(w: *Writer, comptime name: []const u8, comptime tag: usize) 
             \\        body: f{d} !== NULL ? node(f{d}) : null,
             \\        expression: false,
             \\      }};
+            \\      if (f0) r.decorators = nodeArr(f{d}, f0);
             \\      if (_isTs) {{
             \\        r.typeParameters = f{d} !== NULL ? node(f{d}) : null;
             \\        r.returnType = f{d} !== NULL ? node(f{d}) : null;
@@ -705,6 +708,7 @@ fn writeSpecialCase(w: *Writer, comptime name: []const u8, comptime tag: usize) 
             bg,  ba,
             sp,  sp,
             sb,  sb,
+            sdec,
             stp, stp,
             srt, srt,
             bd,
@@ -1507,7 +1511,7 @@ fn writeSemanticAccessors(w: *Writer) !void {
         \\        typeOnly: (i) => (({[bits]s} >> {[tbit]d}) & 1) !== 0,
         \\        phase: (i) =>
         \\          ({[bits]s} >> {[hpbit]d}) & 1
-        \\            ? IMPORT_PHASES[({[bits]s} >> {[pbit]d}) & 1]
+        \\            ? IMPORT_PHASES[({[bits]s} >> {[pbit]d}) & 3]
         \\            : null,
         \\        node: (i) => node({[n]s}),
         \\      }},

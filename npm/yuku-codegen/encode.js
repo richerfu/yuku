@@ -24,7 +24,7 @@ const IMPORT_EXPORT_KINDS_INV = {"value": 0, "type": 1};
 const TS_TYPE_OPERATORS_INV = {"keyof": 0, "unique": 1, "readonly": 2};
 const TS_METHOD_SIGNATURE_KINDS_INV = {"method": 0, "get": 1, "set": 2};
 const TS_MODULE_KINDS_INV = {"namespace": 0, "module": 1};
-const IMPORT_PHASE_INV = {"source": 0, "defer": 1};
+const IMPORT_PHASE_INV = {"source": 0, "defer": 1, "lazy": 2};
 const ACCESSIBILITY_INV = (v) =>
   v == null ? 0
   : v === "public" ? 1
@@ -218,6 +218,7 @@ function encode(program, lineStarts) {
     const body = n.body == null ? NULL : encNode(n.body);
     const tp = n.typeParameters == null ? NULL : encNode(n.typeParameters);
     const rt_ = n.returnType == null ? NULL : encNode(n.returnType);
+    const decs = encArr(n.decorators || [], encNode);
     const idx = alloc();
     tagAt(idx, 3);
     slotAt(idx, 0, id);
@@ -225,6 +226,8 @@ function encode(program, lineStarts) {
     slotAt(idx, 2, body);
     slotAt(idx, 3, tp);
     slotAt(idx, 4, rt_);
+    f0At(idx, decs.len);
+    slotAt(idx, 5, decs.start);
     flagsAt(idx,
       ((kind & 3) << 0)
       | (n.generator ? 4 : 0)
@@ -1124,7 +1127,7 @@ function encode(program, lineStarts) {
     slotAt(idx, 1, c_source);
     slotAt(idx, 2, c_attributes.start);
     slotAt(idx, 3, c_attributes.len);
-    flagsAt(idx, 0 | (n.phase != null ? 1 | ((IMPORT_PHASE_INV[n.phase] | 0) << 1) : 0) | ((IMPORT_EXPORT_KINDS_INV[n.importKind] | 0) << 2));
+    flagsAt(idx, 0 | (n.phase != null ? 1 | ((IMPORT_PHASE_INV[n.phase] | 0) << 1) : 0) | ((IMPORT_EXPORT_KINDS_INV[n.importKind] | 0) << 3));
     spanAt(idx, asStart(n), asEnd(n));
     recordComments(n, idx);
     return idx;
@@ -2109,6 +2112,64 @@ function encode(program, lineStarts) {
     recordComments(n, idx);
     return idx;
   }
+  function enc_arkui_struct(n) {
+    const c_decorators = encArr(n.decorators, encNode);
+    const c_id = n.id == null ? NULL : encNode(n.id);
+    const c_type_parameters = n.typeParameters == null ? NULL : encNode(n.typeParameters);
+    const c_body = n.body == null ? NULL : encNode(n.body);
+    const idx = alloc();
+    tagAt(idx, 171);
+    f0At(idx, c_decorators.len);
+    slotAt(idx, 0, c_decorators.start);
+    slotAt(idx, 1, c_id);
+    slotAt(idx, 2, c_type_parameters);
+    slotAt(idx, 3, c_body);
+    flagsAt(idx, 0 | (n.declare ? 1 : 0));
+    spanAt(idx, asStart(n), asEnd(n));
+    recordComments(n, idx);
+    return idx;
+  }
+  function enc_arkui_annotation(n) {
+    const c_decorators = encArr(n.decorators, encNode);
+    const c_id = n.id == null ? NULL : encNode(n.id);
+    const c_body = n.body == null ? NULL : encNode(n.body);
+    const idx = alloc();
+    tagAt(idx, 172);
+    f0At(idx, c_decorators.len);
+    slotAt(idx, 0, c_decorators.start);
+    slotAt(idx, 1, c_id);
+    slotAt(idx, 2, c_body);
+    flagsAt(idx, 0 | (n.declare ? 1 : 0));
+    spanAt(idx, asStart(n), asEnd(n));
+    recordComments(n, idx);
+    return idx;
+  }
+  function enc_arkui_component(n) {
+    const c_callee = n.callee == null ? NULL : encNode(n.callee);
+    const c_type_arguments = n.typeArguments == null ? NULL : encNode(n.typeArguments);
+    const c_arguments = encArr(n.arguments, encNode);
+    const c_children = encArr(n.children, encNode);
+    const idx = alloc();
+    tagAt(idx, 173);
+    slotAt(idx, 0, c_callee);
+    slotAt(idx, 1, c_type_arguments);
+    f0At(idx, c_arguments.len);
+    slotAt(idx, 2, c_arguments.start);
+    slotAt(idx, 3, c_children.start);
+    slotAt(idx, 4, c_children.len);
+    spanAt(idx, asStart(n), asEnd(n));
+    recordComments(n, idx);
+    return idx;
+  }
+  function enc_arkui_leading_dot(n) {
+    const c_expression = n.expression == null ? NULL : encNode(n.expression);
+    const idx = alloc();
+    tagAt(idx, 174);
+    slotAt(idx, 0, c_expression);
+    spanAt(idx, asStart(n), asEnd(n));
+    recordComments(n, idx);
+    return idx;
+  }
   const commentsByIdx = new Map();
   function encNode(n) {
     if (n == null) return NULL;
@@ -2292,6 +2353,10 @@ function encode(program, lineStarts) {
       case "JSXEmptyExpression": return enc_jsx_empty_expression(n);
       case "JSXText": return enc_jsx_text(n);
       case "JSXSpreadChild": return enc_jsx_spread_child(n);
+      case "StructStatement": return enc_arkui_struct(n);
+      case "AnnotationDeclaration": return enc_arkui_annotation(n);
+      case "ArkUIComponentExpression": return enc_arkui_component(n);
+      case "LeadingDotExpression": return enc_arkui_leading_dot(n);
       default: throw new Error("yuku-codegen: unsupported ESTree node type: " + n.type);
     }
   }

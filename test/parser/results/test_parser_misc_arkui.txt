@@ -1,0 +1,17 @@
+test/parser/misc/arkui
+======================
+Passed:       11/11 (100.00%)
+Failed:       0
+AST mismatch: 0/11
+
+✓ test/parser/misc/arkui/annotation.ets
+✓ test/parser/misc/arkui/builder-function.ets
+✓ test/parser/misc/arkui/component.ets
+✓ test/parser/misc/arkui/comprehensive.module.ets
+✓ test/parser/misc/arkui/export-declare-struct.module.ets
+✓ test/parser/misc/arkui/lazy-import.module.ets
+✓ test/parser/misc/arkui/leading-dot.ets
+✓ test/parser/misc/arkui/state-object.ets
+✓ test/parser/misc/arkui/struct-generic.ets
+✓ test/parser/misc/arkui/struct.ets
+✓ test/parser/misc/arkui/trivial.ets

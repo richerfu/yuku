@@ -143,7 +143,7 @@ inline fn canStartClassName(parser: *Parser) Error!bool {
     return true;
 }
 
-fn parseClassBody(parser: *Parser) Error!?ast.NodeIndex {
+pub fn parseClassBody(parser: *Parser) Error!?ast.NodeIndex {
     const start = parser.current_token.span.start;
     if (!try parser.expect(
         .left_brace,

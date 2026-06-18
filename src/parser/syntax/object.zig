@@ -10,6 +10,7 @@ const literals = @import("literals.zig");
 const grammar = @import("../grammar.zig");
 const functions = @import("functions.zig");
 const ts = @import("ts/types.zig");
+const arkui = @import("arkui.zig");
 
 /// result from parsing object cover grammar: {a, b: c, ...d}
 pub const ObjectCover = struct {
@@ -25,6 +26,13 @@ pub fn parseCover(parser: *Parser) Error!?ObjectCover {
     std.debug.assert(parser.current_token.tag == .left_brace);
     const start = parser.current_token.span.start;
     try parser.advance() orelse return null; // consume {
+
+    // ArkUI state-style object: `{ .method(args).chain(); .method2(args) }`.
+    // Each leading-dot statement becomes an object property with a synthetic
+    // empty key whose value is the leading-dot expression (mirrors oxc).
+    if (parser.tree.isArkui() and parser.current_token.tag == .dot) {
+        return parseArkuiStateObject(parser, start);
+    }
 
     const checkpoint = parser.scratch_cover.begin();
     defer parser.scratch_cover.reset(checkpoint);
@@ -93,6 +101,78 @@ pub fn parseCover(parser: *Parser) Error!?ObjectCover {
 
     return .{
         .properties = properties,
+        .start = start,
+        .end = end,
+    };
+}
+
+/// Parse an ArkUI state-style object literal whose body is a sequence of
+/// leading-dot expressions: `{ .backgroundColor('#fff').borderWidth(1) }`.
+/// Each `.method(args)` is recorded as an `object_property` with a synthetic
+/// empty-name `identifier_name` key and the leading-dot expression as its
+/// value. `{` is already consumed; the cursor is on the first `.`.
+fn parseArkuiStateObject(parser: *Parser, start: u32) Error!?ObjectCover {
+    const checkpoint = parser.scratch_cover.begin();
+    defer parser.scratch_cover.reset(checkpoint);
+
+    var end = start + 1;
+    while (parser.current_token.tag != .right_brace and parser.current_token.tag != .eof) {
+        if (parser.current_token.tag == .dot) {
+            const expr_start = parser.current_token.span.start;
+            const expr = try arkui.parseLeadingDotExpression(parser) orelse return null;
+            const expr_end = parser.tree.span(expr).end;
+
+            // synthetic empty-name key; the codegen prints just the value.
+            const key = try parser.tree.addNode(
+                .{ .identifier_name = .{ .name = .empty } },
+                .{ .start = expr_end, .end = expr_end },
+            );
+            const prop = try parser.tree.addNode(.{ .object_property = .{
+                .key = key,
+                .value = expr,
+                .kind = .init,
+                .method = false,
+                .shorthand = false,
+                .computed = false,
+            } }, .{ .start = expr_start, .end = expr_end });
+            try parser.scratch_cover.append(parser.allocator(), prop);
+            end = expr_end;
+
+            // separators between statements: `;` or `,` (both optional).
+            if (parser.current_token.tag == .semicolon or parser.current_token.tag == .comma) {
+                try parser.advance() orelse return null;
+            }
+        } else {
+            // a normal `key: value` property mixed in.
+            const prop = try parseCoverProperty(parser) orelse return null;
+            try parser.scratch_cover.append(parser.allocator(), prop);
+            end = parser.tree.span(prop).end;
+            if (parser.current_token.tag == .comma) {
+                try parser.advance() orelse return null;
+            } else if (parser.current_token.tag != .right_brace) {
+                try parser.reportExpected(
+                    parser.current_token.span,
+                    "Expected ',' or '}' in object",
+                    .{},
+                );
+                return null;
+            }
+        }
+    }
+
+    if (parser.current_token.tag != .right_brace) {
+        try parser.report(
+            .{ .start = start, .end = end },
+            "Unterminated object",
+            .{ .help = "Add a closing '}' to complete the object." },
+        );
+        return null;
+    }
+    end = parser.current_token.span.end;
+    try parser.advance() orelse return null; // consume }
+
+    return .{
+        .properties = try parser.addExtraFromScratch(&parser.scratch_cover, checkpoint),
         .start = start,
         .end = end,
     };

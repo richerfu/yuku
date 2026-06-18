@@ -70,6 +70,14 @@ const suites: TestSuite[] = [
     options: { semanticErrors: true },
   },
   {
+    path: `${MISC_DIR}/arkui`,
+    expect: "snapshot",
+    lang: ["arkui"],
+    recursive: false,
+    allowErrors: true,
+    autoSnapshot: true,
+  },
+  {
     path: `${MISC_DIR}/js/preserve-parens-disabled`,
     expect: "snapshot",
     lang: ["js"],

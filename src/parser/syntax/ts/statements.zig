@@ -13,6 +13,7 @@ const functions = @import("../functions.zig");
 const expressions = @import("../expressions.zig");
 const variables = @import("../variables.zig");
 const class = @import("../class.zig");
+const arkui = @import("../arkui.zig");
 
 // `is_const` only matters on enums
 pub const Modifiers = struct {
@@ -61,6 +62,12 @@ pub fn isStartOfTsDeclaration(parser: *Parser) bool {
     switch (cur.tag) {
         .type, .interface, .@"enum", .namespace => {
             // reserved word after head is not a name, fall through to expr
+            const name = peek.next() orelse return false;
+            return isDeclarationName(name);
+        },
+        // ArkUI `struct` / `declare struct` (only in ArkUI mode)
+        .@"struct" => {
+            if (!parser.tree.isArkui()) return false;
             const name = peek.next() orelse return false;
             return isDeclarationName(name);
         },
@@ -165,6 +172,13 @@ pub fn parseTsDeclaration(parser: *Parser) Error!?ast.NodeIndex {
             parser,
             .{ .is_declare = mods.declare, .is_abstract = mods.abstract },
             start,
+        ),
+        // ArkUI `struct` / `declare struct`
+        .@"struct" => arkui.parseStruct(
+            parser,
+            .{ .is_declare = mods.declare },
+            start,
+            ast.IndexRange.empty,
         ),
         .import => parseDeclareImportEquals(parser, start),
         else => unreachable,

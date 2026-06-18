@@ -1161,6 +1161,14 @@ fn Printer(comptime cfg: Config) type {
         }
 
         fn emit_object_property(self: *Self, p: *const ast.ObjectProperty) Error!void {
+            // ArkUI state-style property: synthetic empty-name key whose value
+            // is a leading-dot expression — emit just the value (`.method(args)`).
+            const key_data = self.nodeData(p.key);
+            if (key_data == .identifier_name and key_data.identifier_name.name.len() == 0) {
+                try self.emit(p.value);
+                return;
+            }
+
             if (p.method or p.kind == .get or p.kind == .set) {
                 const fn_data = self.nodeData(p.value).function;
                 if (p.kind == .get) {
@@ -1628,6 +1636,8 @@ fn Printer(comptime cfg: Config) type {
                     f.type == .ts_empty_body_function_expression;
                 if (is_ts_only) return;
             }
+            // ArkUI `@Builder function …` decorators.
+            try self.printDecorators(f.decorators);
             if (comptime !strip_ts) if (f.declare) try self.writeStr("declare ");
             if (f.async) try self.writeStr("async ");
             try self.writeStr("function");
@@ -1743,6 +1753,67 @@ fn Printer(comptime cfg: Config) type {
             try self.writeByte('}');
         }
 
+        fn emit_arkui_struct(self: *Self, s: *const ast.ArkuiStruct) Error!void {
+            // `declare struct` is ambient and vanishes when stripping TS.
+            if (comptime strip_ts) if (s.declare) return;
+            try self.printDecorators(s.decorators);
+            if (comptime !strip_ts) if (s.declare) try self.writeStr("declare ");
+            try self.writeStr("struct");
+            if (s.id != .null) {
+                try self.writeByte(' ');
+                try self.emit(s.id);
+            }
+            try self.emit(s.type_parameters);
+            try self.space();
+            try self.emit(s.body); // class_body
+        }
+
+        fn emit_arkui_annotation(self: *Self, a: *const ast.ArkuiAnnotation) Error!void {
+            if (comptime strip_ts) if (a.declare) return;
+            try self.printDecorators(a.decorators);
+            if (comptime !strip_ts) if (a.declare) try self.writeStr("declare ");
+            try self.writeStr("@interface");
+            if (a.id != .null) {
+                try self.writeByte(' ');
+                try self.emit(a.id);
+            }
+            try self.space();
+            try self.emit(a.body); // class_body
+        }
+
+        fn emit_arkui_component(self: *Self, c: *const ast.ArkuiComponent) Error!void {
+            try self.emitAsHead(c.callee);
+            try self.emit(c.type_arguments);
+            try self.printArgList(c.arguments);
+            try self.space();
+            try self.writeByte('{');
+            self.indent_depth += 1;
+            var any = false;
+            for (self.tree.extra(c.children)) |child| {
+                const cur = self.cursor();
+                const saved_semi = self.pending_semi;
+                try self.flushSemi();
+                try self.newline();
+                if (try self.tryEmit(child)) {
+                    any = true;
+                } else {
+                    self.restore(cur);
+                    self.pending_semi = saved_semi;
+                }
+            }
+            self.indent_depth -= 1;
+            if (any) {
+                self.pending_semi = false;
+                try self.newline();
+            }
+            try self.writeByte('}');
+        }
+
+        fn emit_arkui_leading_dot(self: *Self, d: *const ast.ArkuiLeadingDot) Error!void {
+            try self.writeByte('.');
+            try self.emit(d.expression);
+        }
+
         fn emit_method_definition(self: *Self, m: *const ast.MethodDefinition) Error!void {
             const fn_data = self.nodeData(m.value).function;
             if (comptime strip_ts) if (m.abstract or fn_data.body == .null) return;
@@ -1843,6 +1914,7 @@ fn Printer(comptime cfg: Config) type {
                 try self.writeStr(switch (ph) {
                     .source => "source",
                     .@"defer" => "defer",
+                    .lazy => "lazy",
                 });
             }
 
@@ -1914,6 +1986,8 @@ fn Printer(comptime cfg: Config) type {
                 try self.writeStr(switch (ph) {
                     .source => "source",
                     .@"defer" => "defer",
+                    // `lazy` has no dynamic-import form; included for exhaustiveness.
+                    .lazy => "lazy",
                 });
             }
             try self.writeByte('(');

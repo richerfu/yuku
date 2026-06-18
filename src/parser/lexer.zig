@@ -1016,7 +1016,10 @@ pub const Lexer = struct {
                 else => {},
             },
             4 => switch (lexeme[1]) {
-                'a' => if (eql(u8, lexeme, "case")) return .case,
+                'a' => {
+                    if (eql(u8, lexeme, "case")) return .case;
+                    if (eql(u8, lexeme, "lazy")) return .lazy;
+                },
                 'h' => if (eql(u8, lexeme, "this")) return .this,
                 'l' => if (eql(u8, lexeme, "else")) return .@"else",
                 'n' => if (eql(u8, lexeme, "enum")) return .@"enum",
@@ -1071,6 +1074,7 @@ pub const Lexer = struct {
                     if (eql(u8, lexeme, "switch")) return .@"switch";
                     if (eql(u8, lexeme, "static")) return .static;
                     if (eql(u8, lexeme, "source")) return .source;
+                    if (eql(u8, lexeme, "struct")) return .@"struct";
                 },
                 't' => if (eql(u8, lexeme, "typeof")) return .typeof,
                 'u' => if (eql(u8, lexeme, "unique")) return .unique,

@@ -1,0 +1,298 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 172,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "StructStatement",
+        "start": 0,
+        "end": 171,
+        "decorators": [
+          {
+            "type": "Decorator",
+            "start": 0,
+            "end": 10,
+            "expression": {
+              "type": "Identifier",
+              "start": 1,
+              "end": 10,
+              "name": "Component",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            }
+          }
+        ],
+        "id": {
+          "type": "Identifier",
+          "start": 18,
+          "end": 24,
+          "name": "Styled",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 25,
+          "end": 171,
+          "body": [
+            {
+              "type": "MethodDefinition",
+              "start": 29,
+              "end": 93,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 29,
+                "end": 34,
+                "name": "build",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 34,
+                "end": 93,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 37,
+                  "end": 93,
+                  "body": [
+                    {
+                      "type": "ExpressionStatement",
+                      "start": 43,
+                      "end": 89,
+                      "expression": {
+                        "type": "ArkUIComponentExpression",
+                        "start": 43,
+                        "end": 89,
+                        "callee": {
+                          "type": "Identifier",
+                          "start": 43,
+                          "end": 49,
+                          "name": "Column",
+                          "decorators": [],
+                          "optional": false,
+                          "typeAnnotation": null
+                        },
+                        "typeArguments": null,
+                        "arguments": [],
+                        "children": [
+                          {
+                            "type": "ExpressionStatement",
+                            "start": 60,
+                            "end": 83,
+                            "expression": {
+                              "type": "CallExpression",
+                              "start": 60,
+                              "end": 83,
+                              "callee": {
+                                "type": "MemberExpression",
+                                "start": 60,
+                                "end": 79,
+                                "object": {
+                                  "type": "CallExpression",
+                                  "start": 60,
+                                  "end": 70,
+                                  "callee": {
+                                    "type": "Identifier",
+                                    "start": 60,
+                                    "end": 64,
+                                    "name": "Text",
+                                    "decorators": [],
+                                    "optional": false,
+                                    "typeAnnotation": null
+                                  },
+                                  "arguments": [
+                                    {
+                                      "type": "Literal",
+                                      "start": 65,
+                                      "end": 69,
+                                      "value": "hi",
+                                      "raw": "'hi'"
+                                    }
+                                  ],
+                                  "optional": false,
+                                  "typeArguments": null
+                                },
+                                "property": {
+                                  "type": "Identifier",
+                                  "start": 71,
+                                  "end": 79,
+                                  "name": "fontSize",
+                                  "decorators": [],
+                                  "optional": false,
+                                  "typeAnnotation": null
+                                },
+                                "computed": false,
+                                "optional": false
+                              },
+                              "arguments": [
+                                {
+                                  "type": "Literal",
+                                  "start": 80,
+                                  "end": 82,
+                                  "value": 12,
+                                  "raw": "12"
+                                }
+                              ],
+                              "optional": false,
+                              "typeArguments": null
+                            },
+                            "directive": null
+                          }
+                        ]
+                      },
+                      "directive": null
+                    }
+                  ]
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "method",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 96,
+              "end": 169,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 96,
+                "end": 106,
+                "name": "applyStyle",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 106,
+                "end": 169,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 115,
+                  "end": 169,
+                  "body": [
+                    {
+                      "type": "ExpressionStatement",
+                      "start": 121,
+                      "end": 165,
+                      "expression": {
+                        "type": "LeadingDotExpression",
+                        "start": 121,
+                        "end": 165,
+                        "expression": {
+                          "type": "CallExpression",
+                          "start": 122,
+                          "end": 165,
+                          "callee": {
+                            "type": "MemberExpression",
+                            "start": 122,
+                            "end": 162,
+                            "object": {
+                              "type": "CallExpression",
+                              "start": 122,
+                              "end": 150,
+                              "callee": {
+                                "type": "Identifier",
+                                "start": 122,
+                                "end": 137,
+                                "name": "backgroundColor",
+                                "decorators": [],
+                                "optional": false,
+                                "typeAnnotation": null
+                              },
+                              "arguments": [
+                                {
+                                  "type": "Literal",
+                                  "start": 138,
+                                  "end": 149,
+                                  "value": "#ffffeef0",
+                                  "raw": "'#ffffeef0'"
+                                }
+                              ],
+                              "optional": false,
+                              "typeArguments": null
+                            },
+                            "property": {
+                              "type": "Identifier",
+                              "start": 151,
+                              "end": 162,
+                              "name": "borderWidth",
+                              "decorators": [],
+                              "optional": false,
+                              "typeAnnotation": null
+                            },
+                            "computed": false,
+                            "optional": false
+                          },
+                          "arguments": [
+                            {
+                              "type": "Literal",
+                              "start": 163,
+                              "end": 164,
+                              "value": 1,
+                              "raw": "1"
+                            }
+                          ],
+                          "optional": false,
+                          "typeArguments": null
+                        }
+                      },
+                      "directive": null
+                    }
+                  ]
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": {
+                  "type": "TSTypeAnnotation",
+                  "start": 108,
+                  "end": 114,
+                  "typeAnnotation": {
+                    "type": "TSVoidKeyword",
+                    "start": 110,
+                    "end": 114
+                  }
+                },
+                "declare": false
+              },
+              "kind": "method",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "declare": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": []
+}

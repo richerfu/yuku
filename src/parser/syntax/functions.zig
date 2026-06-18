@@ -18,6 +18,9 @@ const ParseFunctionOpts = struct {
     /// `export default function`: name is optional but the result is
     /// still a `FunctionDeclaration`.
     is_default_export: bool = false,
+    /// `decorator[]` for ArkUI `@Builder function …` (statement-level
+    /// decorated functions). Empty by default.
+    decorators: ast.IndexRange = .empty,
 };
 
 pub fn parseFunction(
@@ -179,6 +182,7 @@ pub fn parseFunction(
             .body = body,
             .type_parameters = type_parameters,
             .return_type = return_type,
+            .decorators = opts.decorators,
         },
     }, .{
         .start = start,

@@ -76,6 +76,11 @@ const NAME_OVERRIDES = [_]struct { z: []const u8, e: []const u8 }{
     .{ .z = "ts_jsdoc_nullable_type", .e = "TSJSDocNullableType" },
     .{ .z = "ts_jsdoc_non_nullable_type", .e = "TSJSDocNonNullableType" },
     .{ .z = "ts_jsdoc_unknown_type", .e = "TSJSDocUnknownType" },
+    // ArkUI (HarmonyOS ArkTS) — names aligned with oxc's ESTree output
+    .{ .z = "arkui_struct", .e = "StructStatement" },
+    .{ .z = "arkui_annotation", .e = "AnnotationDeclaration" },
+    .{ .z = "arkui_component", .e = "ArkUIComponentExpression" },
+    .{ .z = "arkui_leading_dot", .e = "LeadingDotExpression" },
 };
 
 pub fn estreeType(comptime name: []const u8) []const u8 {

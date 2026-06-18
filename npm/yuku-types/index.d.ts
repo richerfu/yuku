@@ -4,7 +4,7 @@ type SourceType = "script" | "module";
 type ModuleKind = SourceType;
 
 /** Language variant of the source code. */
-type SourceLang = "js" | "ts" | "jsx" | "tsx" | "dts";
+type SourceLang = "js" | "ts" | "jsx" | "tsx" | "dts" | "arkui";
 /** Whether a comment came from a line or block source comment. */
 type CommentType = "Line" | "Block";
 
@@ -706,6 +706,8 @@ interface FunctionDeclaration extends BaseNode {
   declare?: boolean;
   typeParameters?: TSTypeParameterDeclaration | null;
   returnType?: TSTypeAnnotation | null;
+  /** Present only for ArkUI `@Builder function` (decorated functions). */
+  decorators?: Decorator[];
 }
 
 interface FunctionExpression extends BaseNode {
@@ -719,6 +721,7 @@ interface FunctionExpression extends BaseNode {
   declare?: boolean;
   typeParameters?: TSTypeParameterDeclaration | null;
   returnType?: TSTypeAnnotation | null;
+  decorators?: Decorator[];
 }
 
 interface TSDeclareFunction extends BaseNode {
@@ -796,6 +799,40 @@ type Class = ClassDeclaration | ClassExpression;
 interface ClassBody extends BaseNode {
   type: "ClassBody";
   body: ClassElement[];
+}
+
+// ArkUI (HarmonyOS ArkTS / `.ets`) — names aligned with oxc.
+
+interface StructStatement extends BaseNode {
+  type: "StructStatement";
+  decorators: Decorator[];
+  id: BindingIdentifier;
+  typeParameters?: TSTypeParameterDeclaration | null;
+  body: ClassBody;
+  declare?: boolean;
+}
+
+interface AnnotationDeclaration extends BaseNode {
+  type: "AnnotationDeclaration";
+  decorators: Decorator[];
+  id: BindingIdentifier;
+  body: ClassBody;
+  declare?: boolean;
+}
+
+interface ArkUIComponentExpression extends BaseNode {
+  type: "ArkUIComponentExpression";
+  callee: Expression;
+  typeArguments?: TSTypeParameterInstantiation | null;
+  arguments: Argument[];
+  /** child statements: nested components (as ExpressionStatement), expressions, or control flow. */
+  children: Statement[];
+}
+
+interface LeadingDotExpression extends BaseNode {
+  type: "LeadingDotExpression";
+  /** the call/member chain following the leading dot, e.g. `fontColor('#fff').fontSize(12)`. */
+  expression: Expression;
 }
 
 interface MethodDefinition extends BaseNode {
@@ -1592,7 +1629,9 @@ type Declaration =
   | TSInterfaceDeclaration
   | TSEnumDeclaration
   | TSModuleDeclaration
-  | TSImportEqualsDeclaration;
+  | TSImportEqualsDeclaration
+  | StructStatement
+  | AnnotationDeclaration;
 
 type Expression =
   | IdentifierReference
@@ -1628,7 +1667,9 @@ type Expression =
   | TSNonNullExpression
   | TSInstantiationExpression
   | JSXElement
-  | JSXFragment;
+  | JSXFragment
+  | ArkUIComponentExpression
+  | LeadingDotExpression;
 
 type Statement =
   | ExpressionStatement

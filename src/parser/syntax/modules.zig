@@ -12,6 +12,7 @@ const literals = @import("literals.zig");
 const patterns = @import("patterns.zig");
 const functions = @import("functions.zig");
 const class = @import("class.zig");
+const arkui = @import("arkui.zig");
 const extensions = @import("extensions.zig");
 const variables = @import("variables.zig");
 const ts = @import("ts/statements.zig");
@@ -55,6 +56,15 @@ pub fn parseImportDeclarationFrom(parser: *Parser, start: u32) Error!?ast.NodeIn
     // import defer * as x from
     else if (parser.current_token.tag == .@"defer" and next.tag == .star) {
         phase = .@"defer";
+        try parser.advance() orelse return null;
+    }
+    // ArkUI import lazy { x } / import lazy * as ns / import lazy x from
+    // (`import lazy from "m"` is a regular default import named "lazy")
+    else if (parser.tree.isArkui() and parser.current_token.tag == .lazy and
+        (next.tag == .left_brace or next.tag == .star or
+            (next.tag.isIdentifierLike() and next.tag != .from)))
+    {
+        phase = .lazy;
         try parser.advance() orelse return null;
     }
 
@@ -551,12 +561,28 @@ fn parseExportDefaultPart(parser: *Parser) Error!?DefaultExportPart {
     if (tag == .at) {
         const decorators_start = parser.current_token.span.start;
         const decorators = try extensions.parseDecorators(parser) orelse return null;
+        // ArkUI: `@Component export default struct S { ... }`
+        if (parser.tree.isArkui() and parser.current_token.tag == .@"struct") {
+            const decl = try arkui.parseStruct(
+                parser,
+                .{},
+                decorators_start,
+                decorators,
+            ) orelse return null;
+            return .{ .declaration = decl, .needs_semi = false };
+        }
         const decl = try class.parseClassDecorated(
             parser,
             .{ .is_default_export = true },
             decorators_start,
             decorators,
         ) orelse return null;
+        return .{ .declaration = decl, .needs_semi = false };
+    }
+
+    // ArkUI: `export default struct S { ... }`
+    if (parser.tree.isArkui() and tag == .@"struct") {
+        const decl = try arkui.parseStruct(parser, .{}, null, ast.IndexRange.empty) orelse return null;
         return .{ .declaration = decl, .needs_semi = false };
     }
 
@@ -750,12 +776,32 @@ pub fn parseExportDecorated(parser: *Parser, decorators: ast.IndexRange) Error!?
     const is_default = parser.current_token.tag == .default;
     if (is_default) try parser.advance() orelse return null;
 
-    const declaration = try class.parseClassDecorated(
-        parser,
-        .{ .is_default_export = is_default },
-        null,
-        decorators,
-    ) orelse return null;
+    // ArkUI: `@Component export [default] [declare] struct S { ... }`. The
+    // optional `declare` modifier may sit between `export`/`default` and
+    // `struct`; peek for it so a non-struct declaration still reaches the
+    // class path unchanged.
+    const declaration = blk: {
+        if (parser.tree.isArkui()) {
+            const struct_after_declare = parser.current_token.tag == .declare and
+                if (parser.peekAhead()) |t| t.tag == .@"struct" else false;
+            if (parser.current_token.tag == .@"struct" or struct_after_declare) {
+                const is_declare = parser.current_token.tag == .declare;
+                if (is_declare) try parser.advance() orelse return null;
+                break :blk try arkui.parseStruct(
+                    parser,
+                    .{ .is_declare = is_declare },
+                    null,
+                    decorators,
+                ) orelse return null;
+            }
+        }
+        break :blk try class.parseClassDecorated(
+            parser,
+            .{ .is_default_export = is_default },
+            null,
+            decorators,
+        ) orelse return null;
+    };
     const span: ast.Span = .{ .start = start, .end = parser.tree.span(declaration).end };
 
     return try parser.tree.addNode(if (is_default) .{

@@ -1,0 +1,318 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 196,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "StructStatement",
+        "start": 0,
+        "end": 195,
+        "decorators": [
+          {
+            "type": "Decorator",
+            "start": 0,
+            "end": 10,
+            "expression": {
+              "type": "Identifier",
+              "start": 1,
+              "end": 10,
+              "name": "Component",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            }
+          }
+        ],
+        "id": {
+          "type": "Identifier",
+          "start": 18,
+          "end": 25,
+          "name": "Greeter",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 26,
+          "end": 195,
+          "body": [
+            {
+              "type": "PropertyDefinition",
+              "start": 30,
+              "end": 60,
+              "decorators": [
+                {
+                  "type": "Decorator",
+                  "start": 30,
+                  "end": 36,
+                  "expression": {
+                    "type": "Identifier",
+                    "start": 31,
+                    "end": 36,
+                    "name": "State",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  }
+                }
+              ],
+              "key": {
+                "type": "Identifier",
+                "start": 37,
+                "end": 41,
+                "name": "name",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "Literal",
+                "start": 52,
+                "end": 59,
+                "value": "World",
+                "raw": "'World'"
+              },
+              "computed": false,
+              "static": false,
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 41,
+                "end": 49,
+                "typeAnnotation": {
+                  "type": "TSStringKeyword",
+                  "start": 43,
+                  "end": 49
+                }
+              },
+              "declare": false,
+              "override": false,
+              "optional": false,
+              "definite": false,
+              "readonly": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 63,
+              "end": 193,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 63,
+                "end": 68,
+                "name": "build",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 68,
+                "end": 193,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 71,
+                  "end": 193,
+                  "body": [
+                    {
+                      "type": "ExpressionStatement",
+                      "start": 77,
+                      "end": 189,
+                      "expression": {
+                        "type": "ArkUIComponentExpression",
+                        "start": 77,
+                        "end": 189,
+                        "callee": {
+                          "type": "Identifier",
+                          "start": 77,
+                          "end": 83,
+                          "name": "Column",
+                          "decorators": [],
+                          "optional": false,
+                          "typeAnnotation": null
+                        },
+                        "typeArguments": null,
+                        "arguments": [],
+                        "children": [
+                          {
+                            "type": "ExpressionStatement",
+                            "start": 94,
+                            "end": 107,
+                            "expression": {
+                              "type": "CallExpression",
+                              "start": 94,
+                              "end": 107,
+                              "callee": {
+                                "type": "Identifier",
+                                "start": 94,
+                                "end": 98,
+                                "name": "Text",
+                                "decorators": [],
+                                "optional": false,
+                                "typeAnnotation": null
+                              },
+                              "arguments": [
+                                {
+                                  "type": "Literal",
+                                  "start": 99,
+                                  "end": 106,
+                                  "value": "Hello",
+                                  "raw": "'Hello'"
+                                }
+                              ],
+                              "optional": false,
+                              "typeArguments": null
+                            },
+                            "directive": null
+                          },
+                          {
+                            "type": "ExpressionStatement",
+                            "start": 114,
+                            "end": 183,
+                            "expression": {
+                              "type": "CallExpression",
+                              "start": 114,
+                              "end": 183,
+                              "callee": {
+                                "type": "MemberExpression",
+                                "start": 114,
+                                "end": 137,
+                                "object": {
+                                  "type": "CallExpression",
+                                  "start": 114,
+                                  "end": 129,
+                                  "callee": {
+                                    "type": "Identifier",
+                                    "start": 114,
+                                    "end": 120,
+                                    "name": "Button",
+                                    "decorators": [],
+                                    "optional": false,
+                                    "typeAnnotation": null
+                                  },
+                                  "arguments": [
+                                    {
+                                      "type": "Literal",
+                                      "start": 121,
+                                      "end": 128,
+                                      "value": "click",
+                                      "raw": "'click'"
+                                    }
+                                  ],
+                                  "optional": false,
+                                  "typeArguments": null
+                                },
+                                "property": {
+                                  "type": "Identifier",
+                                  "start": 130,
+                                  "end": 137,
+                                  "name": "onClick",
+                                  "decorators": [],
+                                  "optional": false,
+                                  "typeAnnotation": null
+                                },
+                                "computed": false,
+                                "optional": false
+                              },
+                              "arguments": [
+                                {
+                                  "type": "ArrowFunctionExpression",
+                                  "start": 138,
+                                  "end": 182,
+                                  "id": null,
+                                  "generator": false,
+                                  "async": false,
+                                  "params": [],
+                                  "body": {
+                                    "type": "BlockStatement",
+                                    "start": 144,
+                                    "end": 182,
+                                    "body": [
+                                      {
+                                        "type": "ExpressionStatement",
+                                        "start": 154,
+                                        "end": 174,
+                                        "expression": {
+                                          "type": "AssignmentExpression",
+                                          "start": 154,
+                                          "end": 173,
+                                          "left": {
+                                            "type": "MemberExpression",
+                                            "start": 154,
+                                            "end": 163,
+                                            "object": {
+                                              "type": "ThisExpression",
+                                              "start": 154,
+                                              "end": 158
+                                            },
+                                            "property": {
+                                              "type": "Identifier",
+                                              "start": 159,
+                                              "end": 163,
+                                              "name": "name",
+                                              "decorators": [],
+                                              "optional": false,
+                                              "typeAnnotation": null
+                                            },
+                                            "computed": false,
+                                            "optional": false
+                                          },
+                                          "right": {
+                                            "type": "Literal",
+                                            "start": 166,
+                                            "end": 173,
+                                            "value": "ArkUI",
+                                            "raw": "'ArkUI'"
+                                          },
+                                          "operator": "="
+                                        },
+                                        "directive": null
+                                      }
+                                    ]
+                                  },
+                                  "expression": false,
+                                  "typeParameters": null,
+                                  "returnType": null
+                                }
+                              ],
+                              "optional": false,
+                              "typeArguments": null
+                            },
+                            "directive": null
+                          }
+                        ]
+                      },
+                      "directive": null
+                    }
+                  ]
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "method",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "declare": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": []
+}

@@ -1,0 +1,417 @@
+{
+  "program": {
+    "type": "Program",
+    "start": 0,
+    "end": 237,
+    "sourceType": "script",
+    "hashbang": null,
+    "body": [
+      {
+        "type": "StructStatement",
+        "start": 0,
+        "end": 236,
+        "decorators": [
+          {
+            "type": "Decorator",
+            "start": 0,
+            "end": 10,
+            "expression": {
+              "type": "Identifier",
+              "start": 1,
+              "end": 10,
+              "name": "Component",
+              "decorators": [],
+              "optional": false,
+              "typeAnnotation": null
+            }
+          }
+        ],
+        "id": {
+          "type": "Identifier",
+          "start": 18,
+          "end": 22,
+          "name": "Anim",
+          "decorators": [],
+          "typeAnnotation": null,
+          "optional": false
+        },
+        "typeParameters": null,
+        "body": {
+          "type": "ClassBody",
+          "start": 23,
+          "end": 236,
+          "body": [
+            {
+              "type": "PropertyDefinition",
+              "start": 27,
+              "end": 57,
+              "decorators": [
+                {
+                  "type": "Decorator",
+                  "start": 27,
+                  "end": 33,
+                  "expression": {
+                    "type": "Identifier",
+                    "start": 28,
+                    "end": 33,
+                    "name": "State",
+                    "decorators": [],
+                    "optional": false,
+                    "typeAnnotation": null
+                  }
+                }
+              ],
+              "key": {
+                "type": "Identifier",
+                "start": 34,
+                "end": 39,
+                "name": "color",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "Literal",
+                "start": 50,
+                "end": 56,
+                "value": "#fff",
+                "raw": "'#fff'"
+              },
+              "computed": false,
+              "static": false,
+              "typeAnnotation": {
+                "type": "TSTypeAnnotation",
+                "start": 39,
+                "end": 47,
+                "typeAnnotation": {
+                  "type": "TSStringKeyword",
+                  "start": 41,
+                  "end": 47
+                }
+              },
+              "declare": false,
+              "override": false,
+              "optional": false,
+              "definite": false,
+              "readonly": false,
+              "accessibility": null
+            },
+            {
+              "type": "MethodDefinition",
+              "start": 60,
+              "end": 234,
+              "decorators": [],
+              "key": {
+                "type": "Identifier",
+                "start": 60,
+                "end": 65,
+                "name": "build",
+                "decorators": [],
+                "optional": false,
+                "typeAnnotation": null
+              },
+              "value": {
+                "type": "FunctionExpression",
+                "start": 65,
+                "end": 234,
+                "id": null,
+                "generator": false,
+                "async": false,
+                "params": [],
+                "body": {
+                  "type": "BlockStatement",
+                  "start": 68,
+                  "end": 234,
+                  "body": [
+                    {
+                      "type": "ExpressionStatement",
+                      "start": 74,
+                      "end": 230,
+                      "expression": {
+                        "type": "CallExpression",
+                        "start": 74,
+                        "end": 230,
+                        "callee": {
+                          "type": "MemberExpression",
+                          "start": 74,
+                          "end": 122,
+                          "object": {
+                            "type": "ArkUIComponentExpression",
+                            "start": 74,
+                            "end": 107,
+                            "callee": {
+                              "type": "Identifier",
+                              "start": 74,
+                              "end": 80,
+                              "name": "Column",
+                              "decorators": [],
+                              "optional": false,
+                              "typeAnnotation": null
+                            },
+                            "typeArguments": null,
+                            "arguments": [],
+                            "children": [
+                              {
+                                "type": "ExpressionStatement",
+                                "start": 91,
+                                "end": 101,
+                                "expression": {
+                                  "type": "CallExpression",
+                                  "start": 91,
+                                  "end": 101,
+                                  "callee": {
+                                    "type": "Identifier",
+                                    "start": 91,
+                                    "end": 95,
+                                    "name": "Text",
+                                    "decorators": [],
+                                    "optional": false,
+                                    "typeAnnotation": null
+                                  },
+                                  "arguments": [
+                                    {
+                                      "type": "Literal",
+                                      "start": 96,
+                                      "end": 100,
+                                      "value": "hi",
+                                      "raw": "'hi'"
+                                    }
+                                  ],
+                                  "optional": false,
+                                  "typeArguments": null
+                                },
+                                "directive": null
+                              }
+                            ]
+                          },
+                          "property": {
+                            "type": "Identifier",
+                            "start": 113,
+                            "end": 122,
+                            "name": "animation",
+                            "decorators": [],
+                            "optional": false,
+                            "typeAnnotation": null
+                          },
+                          "computed": false,
+                          "optional": false
+                        },
+                        "arguments": [
+                          {
+                            "type": "ObjectExpression",
+                            "start": 123,
+                            "end": 229,
+                            "properties": [
+                              {
+                                "type": "Property",
+                                "start": 131,
+                                "end": 187,
+                                "key": {
+                                  "type": "Identifier",
+                                  "start": 131,
+                                  "end": 137,
+                                  "name": "normal",
+                                  "decorators": [],
+                                  "optional": false,
+                                  "typeAnnotation": null
+                                },
+                                "value": {
+                                  "type": "ObjectExpression",
+                                  "start": 139,
+                                  "end": 187,
+                                  "properties": [
+                                    {
+                                      "type": "Property",
+                                      "start": 141,
+                                      "end": 185,
+                                      "key": {
+                                        "type": "Identifier",
+                                        "start": 185,
+                                        "end": 185,
+                                        "name": "",
+                                        "decorators": [],
+                                        "optional": false,
+                                        "typeAnnotation": null
+                                      },
+                                      "value": {
+                                        "type": "LeadingDotExpression",
+                                        "start": 141,
+                                        "end": 185,
+                                        "expression": {
+                                          "type": "CallExpression",
+                                          "start": 142,
+                                          "end": 185,
+                                          "callee": {
+                                            "type": "MemberExpression",
+                                            "start": 142,
+                                            "end": 182,
+                                            "object": {
+                                              "type": "CallExpression",
+                                              "start": 142,
+                                              "end": 170,
+                                              "callee": {
+                                                "type": "Identifier",
+                                                "start": 142,
+                                                "end": 157,
+                                                "name": "backgroundColor",
+                                                "decorators": [],
+                                                "optional": false,
+                                                "typeAnnotation": null
+                                              },
+                                              "arguments": [
+                                                {
+                                                  "type": "Literal",
+                                                  "start": 158,
+                                                  "end": 169,
+                                                  "value": "#ffffeef0",
+                                                  "raw": "'#ffffeef0'"
+                                                }
+                                              ],
+                                              "optional": false,
+                                              "typeArguments": null
+                                            },
+                                            "property": {
+                                              "type": "Identifier",
+                                              "start": 171,
+                                              "end": 182,
+                                              "name": "borderWidth",
+                                              "decorators": [],
+                                              "optional": false,
+                                              "typeAnnotation": null
+                                            },
+                                            "computed": false,
+                                            "optional": false
+                                          },
+                                          "arguments": [
+                                            {
+                                              "type": "Literal",
+                                              "start": 183,
+                                              "end": 184,
+                                              "value": 1,
+                                              "raw": "1"
+                                            }
+                                          ],
+                                          "optional": false,
+                                          "typeArguments": null
+                                        }
+                                      },
+                                      "kind": "init",
+                                      "method": false,
+                                      "shorthand": false,
+                                      "computed": false,
+                                      "optional": false
+                                    }
+                                  ]
+                                },
+                                "kind": "init",
+                                "method": false,
+                                "shorthand": false,
+                                "computed": false,
+                                "optional": false
+                              },
+                              {
+                                "type": "Property",
+                                "start": 196,
+                                "end": 223,
+                                "key": {
+                                  "type": "Identifier",
+                                  "start": 196,
+                                  "end": 204,
+                                  "name": "disabled",
+                                  "decorators": [],
+                                  "optional": false,
+                                  "typeAnnotation": null
+                                },
+                                "value": {
+                                  "type": "ObjectExpression",
+                                  "start": 206,
+                                  "end": 223,
+                                  "properties": [
+                                    {
+                                      "type": "Property",
+                                      "start": 208,
+                                      "end": 221,
+                                      "key": {
+                                        "type": "Identifier",
+                                        "start": 221,
+                                        "end": 221,
+                                        "name": "",
+                                        "decorators": [],
+                                        "optional": false,
+                                        "typeAnnotation": null
+                                      },
+                                      "value": {
+                                        "type": "LeadingDotExpression",
+                                        "start": 208,
+                                        "end": 221,
+                                        "expression": {
+                                          "type": "CallExpression",
+                                          "start": 209,
+                                          "end": 221,
+                                          "callee": {
+                                            "type": "Identifier",
+                                            "start": 209,
+                                            "end": 216,
+                                            "name": "opacity",
+                                            "decorators": [],
+                                            "optional": false,
+                                            "typeAnnotation": null
+                                          },
+                                          "arguments": [
+                                            {
+                                              "type": "Literal",
+                                              "start": 217,
+                                              "end": 220,
+                                              "value": 0.3,
+                                              "raw": "0.3"
+                                            }
+                                          ],
+                                          "optional": false,
+                                          "typeArguments": null
+                                        }
+                                      },
+                                      "kind": "init",
+                                      "method": false,
+                                      "shorthand": false,
+                                      "computed": false,
+                                      "optional": false
+                                    }
+                                  ]
+                                },
+                                "kind": "init",
+                                "method": false,
+                                "shorthand": false,
+                                "computed": false,
+                                "optional": false
+                              }
+                            ]
+                          }
+                        ],
+                        "optional": false,
+                        "typeArguments": null
+                      },
+                      "directive": null
+                    }
+                  ]
+                },
+                "expression": false,
+                "typeParameters": null,
+                "returnType": null,
+                "declare": false
+              },
+              "kind": "method",
+              "computed": false,
+              "static": false,
+              "override": false,
+              "optional": false,
+              "accessibility": null
+            }
+          ]
+        },
+        "declare": false
+      }
+    ]
+  },
+  "comments": [],
+  "diagnostics": []
+}

@@ -28,10 +28,10 @@ function _ck(type, keys) {
 _ck("SequenceExpression", ["expressions"]);
 _ck("ParenthesizedExpression", ["expression"]);
 _ck("ArrowFunctionExpression", ["params", "body", "typeParameters", "returnType"]);
-_ck("FunctionDeclaration", ["id", "params", "body", "typeParameters", "returnType"]);
-_ck("FunctionExpression", ["id", "params", "body", "typeParameters", "returnType"]);
-_ck("TSDeclareFunction", ["id", "params", "body", "typeParameters", "returnType"]);
-_ck("TSEmptyBodyFunctionExpression", ["id", "params", "body", "typeParameters", "returnType"]);
+_ck("FunctionDeclaration", ["decorators", "id", "params", "body", "typeParameters", "returnType"]);
+_ck("FunctionExpression", ["decorators", "id", "params", "body", "typeParameters", "returnType"]);
+_ck("TSDeclareFunction", ["decorators", "id", "params", "body", "typeParameters", "returnType"]);
+_ck("TSEmptyBodyFunctionExpression", ["decorators", "id", "params", "body", "typeParameters", "returnType"]);
 _ck("BlockStatement", ["body"]);
 _ck("BlockStatement", ["body"]);
 _ck("BinaryExpression", ["left", "right"]);
@@ -202,6 +202,10 @@ _ck("JSXExpressionContainer", ["expression"]);
 _ck("JSXEmptyExpression", []);
 _ck("JSXText", []);
 _ck("JSXSpreadChild", ["expression"]);
+_ck("StructStatement", ["decorators", "id", "typeParameters", "body"]);
+_ck("AnnotationDeclaration", ["decorators", "id", "body"]);
+_ck("ArkUIComponentExpression", ["callee", "typeArguments", "arguments", "children"]);
+_ck("LeadingDotExpression", ["expression"]);
 _ck("Hashbang", []);
 function buildPosMap(src, byteLen, startByte) {
   const m = new Uint32Array(byteLen - startByte + 1);
@@ -386,6 +390,7 @@ function decode(buffer, source) {
         body: f3 !== NULL ? node(f3) : null,
         expression: false,
       };
+      if (f0) r.decorators = nodeArr(f6, f0);
       if (_isTs) {
         r.typeParameters = f4 !== NULL ? node(f4) : null;
         r.returnType = f5 !== NULL ? node(f5) : null;
@@ -615,8 +620,8 @@ function decode(buffer, source) {
       } : null,
       body: nodeArr(f1, f0),
     };
-    case 75: return { type: "ImportExpression", start, end, source: f1 !== NULL ? node(f1) : null, options: f2 !== NULL ? node(f2) : null, phase: (flags & 1) ? ["source", "defer"][(flags >> 1) & 1] : null };
-    case 76: { const r = { type: "ImportDeclaration", start, end, specifiers: nodeArr(f1, f0), source: f2 !== NULL ? node(f2) : null, attributes: nodeArr(f3, f4), phase: (flags & 1) ? ["source", "defer"][(flags >> 1) & 1] : null }; if (_isTs) { r.importKind = IMPORT_EXPORT_KINDS[(flags >> 2) & 1]; } return r; }
+    case 75: return { type: "ImportExpression", start, end, source: f1 !== NULL ? node(f1) : null, options: f2 !== NULL ? node(f2) : null, phase: (flags & 1) ? ["source", "defer", "lazy"][(flags >> 1) & 3] : null };
+    case 76: { const r = { type: "ImportDeclaration", start, end, specifiers: nodeArr(f1, f0), source: f2 !== NULL ? node(f2) : null, attributes: nodeArr(f3, f4), phase: (flags & 1) ? ["source", "defer", "lazy"][(flags >> 1) & 3] : null }; if (_isTs) { r.importKind = IMPORT_EXPORT_KINDS[(flags >> 3) & 1]; } return r; }
     case 77: { const r = { type: "ImportSpecifier", start, end, imported: f1 !== NULL ? node(f1) : null, local: f2 !== NULL ? node(f2) : null }; if (_isTs) { r.importKind = IMPORT_EXPORT_KINDS[flags & 1]; } return r; }
     case 78: return { type: "ImportDefaultSpecifier", start, end, local: f1 !== NULL ? node(f1) : null };
     case 79: return { type: "ImportNamespaceSpecifier", start, end, local: f1 !== NULL ? node(f1) : null };
@@ -774,6 +779,10 @@ function decode(buffer, source) {
       return { type: "JSXText", start, end, value: t, raw: t };
     }
     case 170: return { type: "JSXSpreadChild", start, end, expression: f1 !== NULL ? node(f1) : null };
+    case 171: return { type: "StructStatement", start, end, decorators: nodeArr(f1, f0), id: f2 !== NULL ? node(f2) : null, typeParameters: f3 !== NULL ? node(f3) : null, body: f4 !== NULL ? node(f4) : null, declare: !!(flags & 1) };
+    case 172: return { type: "AnnotationDeclaration", start, end, decorators: nodeArr(f1, f0), id: f2 !== NULL ? node(f2) : null, body: f3 !== NULL ? node(f3) : null, declare: !!(flags & 1) };
+    case 173: return { type: "ArkUIComponentExpression", start, end, callee: f1 !== NULL ? node(f1) : null, typeArguments: f2 !== NULL ? node(f2) : null, arguments: nodeArr(f3, f0), children: nodeArr(f4, f5) };
+    case 174: return { type: "LeadingDotExpression", start, end, expression: f1 !== NULL ? node(f1) : null };
     }
   }
   const node = _attached ? nodeWithComments : _decode;
