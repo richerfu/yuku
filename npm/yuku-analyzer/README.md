@@ -66,6 +66,28 @@ module.resolve("name")   // scope-chain lookup, like the engine does at runtime
 
 Node identity is exact: the node you reach by walking `module.ast` and the node a semantic query returns are the same JavaScript object, so `===` always works.
 
+## Editing the AST
+
+That identity is the payoff. Because the `node` on a symbol or reference _is_ the AST node, a refactor is a plain assignment, and [`yuku-codegen`](https://www.npmjs.com/package/yuku-codegen) prints the mutated tree back to source. No visitor to register, no separate model to translate back.
+
+```js
+import { print } from "yuku-codegen";
+
+const m = analyzer.addFile("util.ts", `const tmp = load();\nexport const data = tmp.value + tmp.size;`);
+const tmp = m.rootScope.find("tmp");
+tmp.declarations[0] === m.ast.body[0].declarations[0].id; // true, literally the same node
+
+tmp.declarations[0].name = "raw"; // rename the binding
+for (const ref of tmp.references) ref.node.name = "raw"; // and every resolved use
+
+// across files, analyzer.referencesOf(symbol) hands back these same live nodes for every use
+print(m.ast).code;
+// const raw = load();
+// export const data = raw.value + raw.size;
+```
+
+The uses come from resolved references, not a name search, so a shadowing inner `tmp` is left untouched: the rename only reaches the identifiers that actually bind to this symbol.
+
 ## Walking with semantic context
 
 `module.walk` is a typed visitor walk where every handler also receives the current scope, symbol, and reference. No manual scope tracking, ever:

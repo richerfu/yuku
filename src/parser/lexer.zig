@@ -127,19 +127,10 @@ pub const Lexer = struct {
 
         const current_char = self.source[self.cursor];
 
-        // fast path, plain ASCII identifier in normal mode
+        // fast path, plain ASCII identifier in normal mode. the escape and
+        // non-ASCII cases fall back to the unicode-aware scan.
         if (ident_start_table_ascii[current_char] and self.mode == .normal) {
-            const start = self.cursor;
-            const src = self.source;
-            var pos = start + 1;
-            while (pos < src.len and ident_continue_table_ascii[src[pos]]) {
-                pos += 1;
-            }
-            if (pos >= src.len or (src[pos] != '\\' and src[pos] < 0x80)) {
-                self.cursor = pos;
-                return self.createToken(self.getKeywordType(src[start..pos]), start, pos);
-            }
-            return self.scanIdentifierOrKeyword();
+            return self.scanAsciiIdentifier() orelse try self.scanIdentifierOrKeyword();
         }
 
         return switch (current_char) {
@@ -161,35 +152,86 @@ pub const Lexer = struct {
             '0'...'9' => try self.scanNumber(),
             '"', '\'' => self.scanString(),
             '`' => self.scanTemplateLiteral(),
-            '~', '(', ')', '{', '[', ']', ';', ',', ':', '@' => self.scanSimplePunctuation(),
-            '}' => self.handleRightBrace(),
+            '~', '(', ')', '{', '}', '[', ']', ';', ',', ':', '@' => self.scanSimplePunctuation(),
             else => self.scanIdentifierOrKeyword(),
         };
     }
+
+    pub inline fn tryNextToken(self: *Lexer) ?Token {
+        std.debug.assert(self.cursor <= self.source.len);
+
+        if (self.mode != .normal) return null;
+
+        const src = self.source;
+        if (self.cursor >= src.len) return null;
+
+        if (src[self.cursor] == ' ') {
+            self.cursor += 1;
+            if (self.cursor >= src.len) return null;
+        }
+
+        const c0 = src[self.cursor];
+        // more whitespace or a comment opener: the full scan handles it.
+        if (ws_class[c0] != 0) return null;
+
+        if (ident_start_table_ascii[c0]) return self.scanAsciiIdentifier();
+        if (simple_punct_tag[c0] != .eof) return self.scanSimplePunctuation();
+
+        if (c0 == '.') {
+            const c1 = self.peek(1);
+            if (c1 != '.' and !std.ascii.isDigit(c1)) {
+                return self.puncToken(1, .dot, self.cursor);
+            }
+        }
+
+        return null;
+    }
+
+    inline fn scanAsciiIdentifier(self: *Lexer) ?Token {
+        const src = self.source;
+        const start = self.cursor;
+
+        var pos = start + 1;
+        while (pos < src.len and ident_continue_table_ascii[src[pos]]) {
+            pos += 1;
+        }
+        if (pos < src.len and (src[pos] == '\\' or src[pos] >= 0x80)) return null;
+
+        self.cursor = pos;
+        const first = src[start];
+        const len = pos - start;
+        const tag: TokenTag = if (first >= 'a' and first <= 'z' and len >= 2 and len <= 11)
+            self.getKeywordType(src[start..pos])
+        else
+            .identifier;
+        return self.createToken(tag, start, pos);
+    }
+
+    const simple_punct_tag: [256]TokenTag = blk: {
+        var t: [256]TokenTag = @splat(.eof);
+        t['~'] = .bitwise_not;
+        t['('] = .left_paren;
+        t[')'] = .right_paren;
+        t['{'] = .left_brace;
+        t['}'] = .right_brace;
+        t['['] = .left_bracket;
+        t[']'] = .right_bracket;
+        t[';'] = .semicolon;
+        t[','] = .comma;
+        t[':'] = .colon;
+        t['@'] = .at;
+        break :blk t;
+    };
 
     inline fn scanSimplePunctuation(self: *Lexer) Token {
         std.debug.assert(self.cursor < self.source.len);
 
         const start = self.cursor;
-        const c = self.source[self.cursor];
-        self.cursor += 1;
+        const tag = simple_punct_tag[self.source[start]];
+        self.cursor = start + 1;
 
-        const tag: TokenTag = switch (c) {
-            '~' => .bitwise_not,
-            '(' => .left_paren,
-            ')' => .right_paren,
-            '{' => .left_brace,
-            '[' => .left_bracket,
-            ']' => .right_bracket,
-            ';' => .semicolon,
-            ',' => .comma,
-            ':' => .colon,
-            '@' => .at,
-            else => unreachable,
-        };
-
-        std.debug.assert(self.cursor == start + 1);
-        return self.createToken(tag, start, self.cursor);
+        std.debug.assert(tag != .eof);
+        return self.createToken(tag, start, start + 1);
     }
 
     inline fn puncToken(self: *Lexer, len: u32, tag: TokenTag, start: u32) Token {
@@ -346,10 +388,8 @@ pub const Lexer = struct {
         self.clearTokenFlags();
     }
 
-    inline fn isLineTerminator(self: *const Lexer, c: u8) bool {
-        std.debug.assert(self.cursor <= self.source.len);
-        return c == '\n' or c == '\r' or
-            (c == 0xE2 and util.Utf.unicodeSeparatorLen(self.source, self.cursor) > 0);
+    inline fn isLineTerminator(self: *const Lexer) bool {
+        return util.Utf.lineBreakLen(self.source, self.cursor) > 0;
     }
 
     // functions exclusively called by the parser for context-specific lexing
@@ -451,7 +491,7 @@ pub const Lexer = struct {
         while (self.cursor < self.source.len) {
             const c = self.source[self.cursor];
 
-            if (self.isLineTerminator(c)) {
+            if (self.isLineTerminator()) {
                 return error.InvalidRegexLineTerminator;
             }
 
@@ -462,7 +502,7 @@ pub const Lexer = struct {
                     return error.UnterminatedRegexLiteral;
                 }
 
-                if (self.isLineTerminator(self.source[self.cursor])) {
+                if (self.isLineTerminator()) {
                     return error.InvalidRegexLineTerminator;
                 }
 
@@ -775,14 +815,6 @@ pub const Lexer = struct {
         self.cursor = @intCast(parsed.end);
 
         return parsed.value;
-    }
-
-    fn handleRightBrace(self: *Lexer) Token {
-        std.debug.assert(self.cursor < self.source.len);
-        std.debug.assert(self.source[self.cursor] == '}');
-        const start = self.cursor;
-        self.cursor += 1;
-        return self.createToken(.right_brace, start, self.cursor);
     }
 
     fn scanDot(self: *Lexer) LexicalError!Token {
@@ -1312,6 +1344,10 @@ pub const Lexer = struct {
     inline fn skipWsAndComments(self: *Lexer) LexicalError!void {
         std.debug.assert(self.cursor <= self.source.len);
 
+        if (self.cursor < self.source.len and ws_class[self.source[self.cursor]] == 0) {
+            return;
+        }
+
         var can_be_html_close_comment =
             self.cursor == 0 or self.hasTokenFlag(.line_terminator_before);
 
@@ -1320,6 +1356,10 @@ pub const Lexer = struct {
         const entry_pos = pos;
 
         while (pos < src.len) {
+            if (src[pos] == ' ') {
+                pos += 1;
+                continue;
+            }
             switch (ws_class[src[pos]]) {
                 1 => pos += 1,
                 2 => {
@@ -1474,7 +1514,7 @@ pub const Lexer = struct {
                 self.cursor += 3;
                 return self.recordComment(.line, start, self.cursor);
             }
-            if (self.isLineTerminator(c)) break;
+            if (self.isLineTerminator()) break;
             self.cursor += 1;
         }
         try self.recordComment(.line, start, self.cursor);
@@ -1489,7 +1529,7 @@ pub const Lexer = struct {
         const start = self.cursor;
         self.cursor += 3;
         while (self.cursor < self.source.len) : (self.cursor += 1) {
-            if (self.isLineTerminator(self.source[self.cursor])) break;
+            if (self.isLineTerminator()) break;
         }
         try self.recordComment(.line, start, self.cursor);
     }
